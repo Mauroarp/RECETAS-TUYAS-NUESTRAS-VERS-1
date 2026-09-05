@@ -674,8 +674,9 @@ const App = {
       <button class="btn btn-primary btn-sm" onclick="App.openUpload()">＋ Compartir receta</button>
       <button class="icon-btn" title="Música de fondo (encender/silenciar)" onclick="Music.toggle()">${Music.wanted()?'🎵':'🔇'}</button>
       <button class="icon-btn" title="Cambiar tema" onclick="App.toggleTheme()">◐</button>
-      <div class="identity" title="Tu identidad en esta sesión">
+      <div class="identity" title="Cerrar sesión" style="cursor:pointer" onclick="App.openLogout()">
         <span class="who">${esc(this.alias||'')}</span><span class="avatar">${esc(initial)}</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.4" style="margin:0 3px 0 -2px"><path d="M6 9l6 6 6-6"/></svg>
       </div>`;
   },
   toggleTheme(){
@@ -684,6 +685,28 @@ const App = {
     const sysDark=window.matchMedia('(prefers-color-scheme:dark)').matches;
     const next = cur ? (cur==='dark'?'light':'dark') : (sysDark?'light':'dark');
     r.setAttribute('data-theme',next);
+  },
+  openLogout(){
+    const ov=this._overlay();
+    ov.innerHTML=`<div class="modal narrow ob-card">
+      <button class="icon-btn modal-x" onclick="App.closeModal()">✕</button>
+      <div class="logo">👋</div>
+      <h2>¿Cerrar sesión?</h2>
+      <p>Saldrás de tu nombre actual (<b>${esc(this.alias)}</b>) y volverás a la pantalla de inicio.
+         Las recetas que compartiste siguen en el recetario para todos.</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="App.doLogout()">Cerrar sesión</button>
+      <div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="App.closeModal()">Cancelar</button></div>
+    </div>`;
+    document.body.appendChild(ov);
+  },
+  doLogout(){
+    ['rdm_alias','rdm_uid','rdm_viewed','rdm_contributed'].forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});
+    this.alias=null; this.uid='u_'+uid8(); LS.set('rdm_uid',this.uid); this.contributed=0;
+    this.query=''; this.filter='all'; this.country='all';
+    this.closeModal();
+    $('#headerBtns').innerHTML='';
+    this.renderOnboarding();
+    toast('Sesión cerrada','good');
   },
 
   /* ============================ main render ============================ */
